@@ -3,8 +3,6 @@
 # Import data from the ARS3D project into arachne (from csv dump and possibly additional API calls)
 # These imports are reversible with:
 #   DELETE FROM objekt WHERE Arbeitsnotiz LIKE 'ARS3D-Import'; DELETE FROM modell3d WHERE Pfad LIKE '/ars3d-test%';
-#
-
 
 import argparse
 import csv
@@ -18,6 +16,7 @@ from mysql.connector import connect, MySQLConnection
 DEFAULT_DB_CONF = os.path.join(os.path.dirname(__file__), '..', 'Config', 'db.my.cnf')
 
 IMPORT_MARKER = 'ARS3D-Import'
+CREATOR_NOTE = 'i3Mainz'
 COPYRIGHT = 'Copyright i3mainz; Alle Rechte vorbehalten'
 FOLDER_REMOTE = '/ars3d-test'
 
@@ -150,7 +149,7 @@ def mapping_apply_all(mapping: dict, inputs: dict) -> Sequence[Tuple[str, str]]:
 
 def arache_object_fields(row: dict) -> Sequence[Tuple[str, str]]:
     fields = mapping_apply_all(MAPPING_OBJEKT, row)
-    return [*fields, ('Arbeitsnotiz', IMPORT_MARKER)] if fields else []
+    return [*fields, ('Arbeitsnotiz', IMPORT_MARKER), ('BearbeiterObjekt', CREATOR_NOTE)] if fields else []
 
 
 def arachne_place_ref_fields(row: dict, object_id) -> Sequence[Tuple[str, str]]:
@@ -164,11 +163,18 @@ def arachne_place_ref_fields(row: dict, object_id) -> Sequence[Tuple[str, str]]:
 
 def arachne_datierung_fields(row: dict, object_id) -> Sequence[Tuple[str, str]]:
     fields = mapping_apply_all(MAPPING_DATES, row)
-    period_url = row.get('periodChronontology', '')
-    if period_url:
-        period_id = period_url.split('/')[-1]
-        fields = [*fields, ('AnfEpocheChronId', period_id)]
     return [('FS_ObjektID', object_id), *fields, ('Ursprungsinformationen', IMPORT_MARKER)] if fields else []
+
+
+def arachne_datierung_period_fields(row: dict, object_id) -> Sequence[Tuple[str, str]]:
+    period_url = row.get('periodChronontology', '')
+    period_label = row.get('periodLabel', '')
+    if period_url and period_label:
+        period_id = period_url.split('/')[-1]
+        return [('FS_ObjektID', object_id),
+                ('AnfEpoche', period_label),
+                ('AnfEpocheChronId', period_id),
+                ('Ursprungsinformationen', IMPORT_MARKER)]
 
 
 def arachne_objektkeramik_fields(row: dict, object_id) -> Sequence[Tuple[str, str]]:
@@ -224,6 +230,7 @@ def main(args: argparse.Namespace):
             obj_id = insert(connection, 'objekt', obj_fields)
             insert(connection, 'ortsbezug', arachne_place_ref_fields(row, obj_id))
             insert(connection, 'datierung', arachne_datierung_fields(row, obj_id))
+            insert(connection, 'datierung', arachne_datierung_period_fields(row, obj_id))
             insert(connection, 'objektkeramik', arachne_objektkeramik_fields(row, obj_id))
             insert(connection, 'modell3d', arachne_modell3d_fields(row, obj_id, args.model_dir))
 
