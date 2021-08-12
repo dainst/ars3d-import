@@ -25,6 +25,8 @@ COPYRIGHT = 'Copyright i3mainz; Alle Rechte vorbehalten'
 FOLDER_REMOTE = '/ars3d-test'
 
 PORTAL_URI_TEMPLATE = 'http://143.93.113.149/mntModels/rgzm/ars3do/%s/%s.json'
+PORTAL_LINK_TO_TEMPLATE = 'http://143.93.113.149/_portal/object.htm?id=ars3do:%s'
+PORTAL_LINK_URI_QUELLE_ID = 45
 
 IGNORE_FLAG = 'IGNORE'
 REPLACE_FLAG = 'REPLACE'
@@ -183,6 +185,16 @@ def arachne_datierung_period_fields(row: dict, object_id) -> Sequence[Tuple[str,
                 ('Ursprungsinformationen', IMPORT_MARKER)]
 
 
+def arachne_uri_fields(row: dict, object_id) -> Sequence[Tuple[str, str]]:
+    uri = PORTAL_LINK_TO_TEMPLATE % row.get('object')
+    return [
+        ('FS_ObjektID', object_id),
+        ('URI', uri),
+        ('FS_URIQuelleID', PORTAL_LINK_URI_QUELLE_ID),
+        ('Beziehung', 'sameAs'),
+    ]
+
+
 def arachne_objektkeramik_fields(row: dict, object_id) -> Sequence[Tuple[str, str]]:
     fields = mapping_apply_all(MAPPING_OBJEKTKERAMIK, row)
     return [('PS_ObjektkeramikID', object_id), *fields] if fields else []
@@ -317,6 +329,7 @@ def main(args: argparse.Namespace):
             insert(connection, 'datierung', arachne_datierung_fields(row, obj_id))
             insert(connection, 'datierung', arachne_datierung_period_fields(row, obj_id))
             insert(connection, 'objektkeramik', arachne_objektkeramik_fields(row, obj_id))
+            insert(connection, 'URI', arachne_uri_fields(row, obj_id))
             insert(connection, 'modell3d', arachne_modell3d_fields(row, obj_id, args.model_dir, args.portal_dir))
 
 

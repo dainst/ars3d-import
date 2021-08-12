@@ -1,8 +1,8 @@
-# Ignore everything
+# Ignore everything ...
 *
 
-# Except for these files...
+# ... except for these files
 !.gitignore
+!ars3d_db_changes.sql
 !ars3d_import.py
 !requirements.txt
-!modell3d_change_table.sql
