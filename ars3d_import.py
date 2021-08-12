@@ -32,7 +32,6 @@ IGNORE_FLAG = 'IGNORE'
 REPLACE_FLAG = 'REPLACE'
 
 MAPPING_OBJEKT = {
-    'objectLabel': [('KurzbeschreibungObjekt', REPLACE_FLAG)],
     'inventoryNumber': [('Katalognummer', REPLACE_FLAG)],
     'materialLabel': {
         'clay': [('Material', 'Ton')],
@@ -46,7 +45,7 @@ MAPPING_OBJEKT = {
     'shapeLabel': {
         'bowl': [('GattungAllgemein', 'Kleinfund;Keramik;Gefäß')],
         'rectangular dish': [('GattungAllgemein', 'Kleinfund;Keramik;Gefäß')],
-        'mould': [('GattungAllgemein', 'Kleinfund;Keramik;Gerät')],
+        'mould': [('GattungAllgemein', 'Kleinfund;Keramik')],
         'lamp': [('GattungAllgemein', 'Kleinfund;Keramik;Gerät')],
         'dish': [('GattungAllgemein', 'Kleinfund;Keramik;Gefäß')],
         'plate': [('GattungAllgemein', 'Kleinfund;Keramik;Gefäß')],
@@ -157,7 +156,13 @@ def mapping_apply_all(mapping: dict, inputs: dict) -> Sequence[Tuple[str, str]]:
 
 def arache_object_fields(row: dict) -> Sequence[Tuple[str, str]]:
     fields = mapping_apply_all(MAPPING_OBJEKT, row)
-    return [*fields, ('Arbeitsnotiz', IMPORT_MARKER), ('BearbeiterObjekt', CREATOR_NOTE)] if fields else []
+    title = row.get('objectLabel').capitalize()
+    return [
+        ('KurzbeschreibungObjekt', title),
+        *fields,
+        ('Arbeitsnotiz', IMPORT_MARKER),
+        ('BearbeiterObjekt', CREATOR_NOTE)
+    ]
 
 
 def arachne_place_ref_fields(row: dict, object_id) -> Sequence[Tuple[str, str]]:
