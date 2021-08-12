@@ -76,12 +76,23 @@ MAPPING_OBJEKTKERAMIK = {
 # Enumerate instead of parsing since cases are limited
 MAPPING_DATES = {
     'dateLabel': {
-        '310/320-430/450 AD': [('AnfDatZeitraum', '310/320'), ('AnfDatvn', 'n. Chr.'), ('EndDatZeitraum', '430/450'), ('EndDatvn', 'n. Chr.')],
-        '350/355 - 450/475 AD': [('AnfDatZeitraum', '350/355'), ('AnfDatvn', 'n. Chr.'), ('EndDatZeitraum', '450/475'), ('EndDatvn', 'n. Chr.')],
-        '330-370 to early 5. century AD': [('AnfDatZeitraum', '330-370'), ('AnfDatvn', 'n. Chr.'), ('EndDatZeitraum', 'Anfang/frühes'), ('EndDatJh', '5'), ('EndDatvn', 'n. Chr.')],
-        '280/300 to late 4. century AD': [('AnfDatZeitraum', '280/300'), ('AnfDatvn', 'n. Chr.'), ('EndDatZeitraum', 'Ende/spätes'), ('EndDatJh', '4'), ('EndDatvn', 'n. Chr.')],
-        '260-320 or mid-late 4. century AD': [('AnfDatZeitraum', '260-320'), ('AnfDatvn', 'n. Chr.'), ('EndDatZeitraum', 'Ende/spätes'), ('EndDatJh', '4'), ('EndDatvn', 'n. Chr.')],
-        'late 4. or early 5. century AD': [('AnfDatZeitraum', 'Ende/spätes'), ('AnfDatJh', '4'), ('AnfDatvn', 'n. Chr.'), ('EndDatZeitraum', 'Anfang/frühes'), ('EndDatJh', '5'), ('EndDatvn', 'n. Chr.')],
+        '310/320-430/450 AD': [('AnfDatZeitraum', '310/320'), ('AnfDatvn', 'n. Chr.'),
+                               ('EndDatZeitraum', '430/450'), ('EndDatvn', 'n. Chr.')],
+        '350/355 - 450/475 AD': [('AnfDatZeitraum', '350/355'), ('AnfDatvn', 'n. Chr.'),
+                                 ('EndDatZeitraum', '450/475'), ('EndDatvn', 'n. Chr.')],
+        '330-370 to early 5. century AD': [('AnfDatZeitraum', '330-370'), ('AnfDatvn', 'n. Chr.'),
+                                           ('EndDatZeitraum', 'Anfang/frühes'),
+                                           ('EndDatJh', '5'), ('EndDatvn', 'n. Chr.')],
+        '280/300 to late 4. century AD': [('AnfDatZeitraum', '280/300'), ('AnfDatvn', 'n. Chr.'),
+                                          ('EndDatZeitraum', 'Ende/spätes'),
+                                          ('EndDatJh', '4'), ('EndDatvn', 'n. Chr.')],
+        '260-320 or mid-late 4. century AD': [('AnfDatZeitraum', '260-320'), ('AnfDatvn', 'n. Chr.'),
+                                              ('EndDatZeitraum', 'Ende/spätes'),
+                                              ('EndDatJh', '4'), ('EndDatvn', 'n. Chr.')],
+        'late 4. or early 5. century AD': [('AnfDatZeitraum', 'Ende/spätes'),
+                                           ('AnfDatJh', '4'), ('AnfDatvn', 'n. Chr.'),
+                                           ('EndDatZeitraum', 'Anfang/frühes'),
+                                           ('EndDatJh', '5'), ('EndDatvn', 'n. Chr.')],
         'mid-late 4. century AD': [('EndDatZeitraum', 'Mitte/Ende'), ('EndDatJh', '4'), ('EndDatvn', 'n. Chr.')],
         'mid-late 5. century AD': [('EndDatZeitraum', 'Mitte/Ende'), ('EndDatJh', '5'), ('EndDatvn', 'n. Chr.')],
         'early 5. century AD': [('EndDatZeitraum', 'Anfang/frühes'), ('EndDatJh', '5'), ('EndDatvn', 'n. Chr.')],
@@ -89,10 +100,14 @@ MAPPING_DATES = {
         '4. century AD': [('EndDatJh', '4'), ('EndDatvn', 'n. Chr.')],
         '5.century AD': [('EndDatJh', '4'), ('EndDatvn', 'n. Chr.')],
         '4.-5. century AD': [('AnfDatJh', '5'), ('AnfDatvn', 'n. Chr.'), ('EndDatJh', '5'), ('EndDatvn', 'n. Chr.')],
-        '430-500 AD': [('AnfPraezise', '430'), ('AnfDatvn', 'n. Chr.'), ('EndPraezise', '500'), ('EndDatvn', 'n. Chr.')],
-        '420-450 AD': [('AnfPraezise', '420'), ('AnfDatvn', 'n. Chr.'), ('EndPraezise', '450'), ('EndDatvn', 'n. Chr.')],
-        '350-430 AD': [('AnfPraezise', '350'), ('AnfDatvn', 'n. Chr.'), ('EndPraezise', '430'), ('EndDatvn', 'n. Chr.')],
-        '290/300-375': [('AnfDatZeitraum', '290/300'), ('AnfDatvn', 'n. Chr.'), ('EndPraezise', '430'), ('EndDatvn', 'n. Chr.')],
+        '430-500 AD': [('AnfPraezise', '430'), ('AnfDatvn', 'n. Chr.'),
+                       ('EndPraezise', '500'), ('EndDatvn', 'n. Chr.')],
+        '420-450 AD': [('AnfPraezise', '420'), ('AnfDatvn', 'n. Chr.'),
+                       ('EndPraezise', '450'), ('EndDatvn', 'n. Chr.')],
+        '350-430 AD': [('AnfPraezise', '350'), ('AnfDatvn', 'n. Chr.'),
+                       ('EndPraezise', '430'), ('EndDatvn', 'n. Chr.')],
+        '290/300-375': [('AnfDatZeitraum', '290/300'), ('AnfDatvn', 'n. Chr.'),
+                        ('EndPraezise', '430'), ('EndDatvn', 'n. Chr.')],
     }
 }
 
@@ -151,7 +166,7 @@ def mapping_apply(mapping: dict, in_key: str, in_value: str) -> Sequence[Tuple[s
 
 def mapping_apply_all(mapping: dict, inputs: dict) -> Sequence[Tuple[str, str]]:
     mapped = [mapping_apply(mapping, k, v) for k, v in inputs.items()]
-    return [t for l in mapped for t in l]
+    return [t for m in mapped for t in m]
 
 
 def arache_object_fields(row: dict) -> Sequence[Tuple[str, str]]:
@@ -230,8 +245,8 @@ def query_portal_local_or_remote(ars_uuid: str, portal_cache: Optional[Path]) ->
         if response.status_code != 200:
             raise Exception(f'Invalid return code {response.status_code} for id: {ars_uuid}.')
         if save_to_file:
-            with open(save_to_file, mode='w', encoding='utf-8') as f:
-                f.write(response.text)
+            with open(save_to_file, mode='w', encoding='utf-8') as file:
+                file.write(response.text)
         return response.text
 
     if portal_cache:
