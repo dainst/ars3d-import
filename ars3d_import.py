@@ -7,10 +7,14 @@
 import argparse
 import csv
 import glob
+import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from time import sleep
 from typing import Optional, Sequence, Tuple
+
+import requests
 from mysql.connector import connect, MySQLConnection
 
 DEFAULT_DB_CONF = os.path.join(os.path.dirname(__file__), '..', 'Config', 'db.my.cnf')
@@ -19,6 +23,8 @@ IMPORT_MARKER = 'ARS3D-Import'
 CREATOR_NOTE = 'i3Mainz'
 COPYRIGHT = 'Copyright i3mainz; Alle Rechte vorbehalten'
 FOLDER_REMOTE = '/ars3d-test'
+
+PORTAL_URI_TEMPLATE = 'http://143.93.113.149/mntModels/rgzm/ars3do/%s/%s.json'
 
 IGNORE_FLAG = 'IGNORE'
 REPLACE_FLAG = 'REPLACE'
@@ -182,27 +188,105 @@ def arachne_objektkeramik_fields(row: dict, object_id) -> Sequence[Tuple[str, st
     return [('PS_ObjektkeramikID', object_id), *fields] if fields else []
 
 
-def arachne_modell3d_fields(row: dict, object_id, model_dir: Path) -> Sequence[Tuple[str, str]]:
-    ars_uuid = row.get('object')
+def arachne_modell3d_fields_from_model_files(model_dir: Path, ars_uuid: str) -> Sequence[Tuple[str, str]]:
     uuid_dir = os.path.join(model_dir, ars_uuid)
     if os.path.isdir(uuid_dir):
         obj_files = glob.glob(f'{uuid_dir}/*_reduziert.obj')
         mtl_files = glob.glob(f'{uuid_dir}/*_reduziert.mtl')
         if obj_files and len(obj_files) == 1 and mtl_files and len(mtl_files) == 1:
             return [
-                ('FS_ObjektID', object_id),
-                ('Titel', row.get('objectLabel').capitalize()),
-                ('Modellierer', 'i3Mainz'),
-                ('Lizenz', COPYRIGHT),
                 ('Dateiname', os.path.basename(obj_files[0])),
                 ('Dateiformat', 'objmtl'),
                 ('DateinameMTL', os.path.basename(mtl_files[0])),
                 ('Pfad', os.path.join(FOLDER_REMOTE, ars_uuid)),
-                ('ModellTyp', 'object')
             ]
         else:
             raise Exception(f'Missing obj or mtl file for id {ars_uuid}.')
     return []
+
+
+def query_portal_local_or_remote(ars_uuid: str, portal_cache: Optional[Path]) -> str:
+
+    def fetch_remote(save_to_file=None) -> str:
+        response = requests.get(PORTAL_URI_TEMPLATE % (ars_uuid, ars_uuid))
+        sleep(0.25)  # Be nice and idle a bit between requests
+        if response.status_code != 200:
+            raise Exception(f'Invalid return code {response.status_code} for id: {ars_uuid}.')
+        if save_to_file:
+            with open(save_to_file, mode='w', encoding='utf-8') as f:
+                f.write(response.text)
+        return response.text
+
+    if portal_cache:
+        portal_file = os.path.join(portal_cache, f'{ars_uuid}.json')
+        if os.path.exists(portal_file):
+            with open(portal_file, mode='r', encoding='utf8') as f:
+                return f.read()
+        else:
+            return fetch_remote(portal_file)
+    else:
+        return fetch_remote()
+
+
+def arachne_modell3d_technical_notes_from_portal(ars_uuid: str, portal_cache: Optional[Path]) -> str:
+    data = json.loads(query_portal_local_or_remote(ars_uuid, portal_cache))
+
+    data_sensor = data['projects'][0]['measurement_series'][0]['sensors'][0]
+    data_setup = data['projects'][0]['measurement_series'][0]['measurements'][0]['measurement_setup']
+    sensor_1 = data_sensor['capturing_device']['sensor_type']['value']
+    cam_img_h = data_setup['image_height']['value']
+    cam_img_w = data_setup['image_width']['value']
+    mv_length = int(data_sensor['capturing_device']['measuring_volume_length']['value'])
+    mv_width = int(data_sensor['capturing_device']['measuring_volume_width']['value'])
+    mv_depth = int(data_sensor['capturing_device']['measuring_volume_depth']['value'])
+    point_distance = data_sensor['capturing_device']['theoretical_measuring_point_distance']['value']
+
+    data_mesh = data['projects'][0]['meshes'][0]['mesh_information']
+    num_points = data_mesh['num_points']['value']
+    num_triangles = data_mesh['num_triangles']['value']
+    area_cm = int((data_mesh['area']['value']) / 100)
+
+    sensor_2 = data['projects'][1]['chunks'][0]['sensors'][0]['capturing_device']['name']['value']
+    img_h = data['projects'][1]['chunks'][0]['sensors'][0]['calibration']['cal_properties']['image_height']['value']
+    img_w = data['projects'][1]['chunks'][0]['sensors'][0]['calibration']['cal_properties']['image_width']['value']
+
+    note = (f"3D Capturing\n"
+            f"Capturing device: structured light scanner\n"
+            f"Sensor:  {sensor_1}\n"
+            f"Camera resolution: {int((cam_img_h * cam_img_w) / 1000000)} MegaPixel\n"
+            f"Measuring volume: {mv_length} mm x {mv_width} mm x {mv_depth} mm\n"
+            f"Theoretical measuring point distance: {point_distance}\n"
+            f"\n"
+            f"3D Model\n"
+            f"Number of points: {num_points}\n"
+            f"Number of triangles: {num_triangles}\n"
+            f"Area: {area_cm} cm^2\n"
+            f"Scale: 1:1\n"
+            f"\n"
+            f"Texturing\n"
+            f"Capturing device: structure from motion\n"
+            f"Sensor: {sensor_2}\n"
+            f"Camera resoulution: {int((img_h * img_w) / 1000000)} MegaPixel")
+    return note
+
+
+def arachne_modell3d_fields(row: dict, object_id, model_dir: Path, portal_cache: Optional[Path] = None)\
+        -> Sequence[Tuple[str, str]]:
+    ars_uuid = row.get('object')
+    fields = arachne_modell3d_fields_from_model_files(model_dir, ars_uuid)
+    if fields:
+        technical_note = arachne_modell3d_technical_notes_from_portal(ars_uuid, portal_cache)
+        return [
+            ('FS_ObjektID', object_id),
+            ('Titel', row.get('objectLabel').capitalize()),
+            ('Modellierer', CREATOR_NOTE),
+            ('TechnischeHinweise', technical_note),
+            ('Lizenz', COPYRIGHT),
+            ('ModellTyp', 'object'),
+            *fields
+        ]
+    else:
+        return []
 
 
 def insert_stmt_with_params(table: str, fields: Sequence[Tuple[str, str]]):
@@ -225,6 +309,7 @@ def main(args: argparse.Namespace):
     reader = csv.DictReader(args.objects_csv, delimiter=';')
     with connect(option_files=args.db_config) as mysql_connection:
         connection = ConnectionWithDryRun(mysql_connection, args.dry_run)
+
         for row in reader:
             obj_fields = arache_object_fields(row)
             obj_id = insert(connection, 'objekt', obj_fields)
@@ -232,7 +317,7 @@ def main(args: argparse.Namespace):
             insert(connection, 'datierung', arachne_datierung_fields(row, obj_id))
             insert(connection, 'datierung', arachne_datierung_period_fields(row, obj_id))
             insert(connection, 'objektkeramik', arachne_objektkeramik_fields(row, obj_id))
-            insert(connection, 'modell3d', arachne_modell3d_fields(row, obj_id, args.model_dir))
+            insert(connection, 'modell3d', arachne_modell3d_fields(row, obj_id, args.model_dir, args.portal_dir))
 
 
 if __name__ == '__main__':
@@ -245,5 +330,7 @@ if __name__ == '__main__':
                              'Expects at least host, database, user, password below a [client] header.')
     parser.add_argument('--model-dir', type=Path, help='Directory to check for 3D model files.',
                         default='/media/archaeocloud/S-Arachne/arachne4scans/arachne4webmodels3d/ars3d-test')
+    parser.add_argument('--portal-dir', type=Path,
+                        help='Optional: A directory with <id>.json files to use as a cache for querying the portal.')
 
     main(parser.parse_args())
