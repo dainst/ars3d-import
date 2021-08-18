@@ -111,6 +111,14 @@ MAPPING_DATES = {
     }
 }
 
+MAPPING_LITERATURZITAT = {
+    'litBookLabel': {
+        'Hayes (1972)': [('FS_LiteraturID', '17657')],
+        'Atlante (1981)': [('FS_LiteraturID', '17631')]
+    },
+    'litClassificationNumber': [('Katnummer', REPLACE_FLAG)]
+}
+
 
 @dataclass(frozen=True)
 class ArachnePlaceReference:
@@ -220,6 +228,18 @@ def arachne_objektkeramik_fields(row: dict, object_id) -> Sequence[Tuple[str, st
     return [('PS_ObjektkeramikID', object_id), *fields] if fields else []
 
 
+def arachne_literaturzitat_fields(row: dict, object_id) -> Sequence[Tuple[str, str]]:
+    if row.get('litClassificationNumber'):
+        if row.get('litBookLabel', '') not in MAPPING_LITERATURZITAT['litBookLabel'].keys():
+            raise Exception(f'Unexpected literature reference: "{row.get("litBookLabel", "")}"')
+        fields = mapping_apply_all(MAPPING_LITERATURZITAT, row)
+        if row.get('litComment', '').startswith('p.'):
+            fields = [*fields, ('Seite', row.get('litComment').replace('p.', '').strip())]
+        return [('FS_ObjektID', object_id), *fields]
+    else:
+        return []
+
+
 def arachne_modell3d_fields_from_model_files(model_dir: Path, ars_uuid: str) -> Sequence[Tuple[str, str]]:
     uuid_dir = os.path.join(model_dir, ars_uuid)
     if os.path.isdir(uuid_dir):
@@ -238,7 +258,6 @@ def arachne_modell3d_fields_from_model_files(model_dir: Path, ars_uuid: str) -> 
 
 
 def query_portal_local_or_remote(ars_uuid: str, portal_cache: Optional[Path]) -> str:
-
     def fetch_remote(save_to_file=None) -> str:
         response = requests.get(PORTAL_URI_TEMPLATE % (ars_uuid, ars_uuid))
         sleep(0.25)  # Be nice and idle a bit between requests
@@ -302,7 +321,7 @@ def arachne_modell3d_technical_notes_from_portal(ars_uuid: str, portal_cache: Op
     return note
 
 
-def arachne_modell3d_fields(row: dict, object_id, model_dir: Path, portal_cache: Optional[Path] = None)\
+def arachne_modell3d_fields(row: dict, object_id, model_dir: Path, portal_cache: Optional[Path] = None) \
         -> Sequence[Tuple[str, str]]:
     ars_uuid = row.get('object')
     fields = arachne_modell3d_fields_from_model_files(model_dir, ars_uuid)
@@ -350,6 +369,7 @@ def main(args: argparse.Namespace):
             insert(connection, 'datierung', arachne_datierung_period_fields(row, obj_id))
             insert(connection, 'objektkeramik', arachne_objektkeramik_fields(row, obj_id))
             insert(connection, 'URI', arachne_uri_fields(row, obj_id))
+            insert(connection, 'literaturzitat', arachne_literaturzitat_fields(row, obj_id))
             insert(connection, 'modell3d', arachne_modell3d_fields(row, obj_id, args.model_dir, args.portal_dir))
 
 

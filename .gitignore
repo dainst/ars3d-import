@@ -5,4 +5,6 @@
 !.gitignore
 !ars3d_db_changes.sql
 !ars3d_import.py
+!mainz-curl-literature.txt
 !requirements.txt
+!README.md
