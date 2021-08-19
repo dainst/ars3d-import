@@ -2,7 +2,7 @@
 
 # Import data from the ARS3D project into arachne (from csv dump and possibly additional API calls)
 # These imports are reversible with:
-#   DELETE FROM objekt WHERE Arbeitsnotiz LIKE 'ARS3D-Import'; DELETE FROM modell3d WHERE Pfad LIKE '/ars3d-test%';
+#   DELETE FROM objekt WHERE Arbeitsnotiz LIKE 'ARS3D-Import%'; DELETE FROM modell3d WHERE Pfad LIKE '/ars3d-test%';
 
 import argparse
 import csv
@@ -183,7 +183,7 @@ def arache_object_fields(row: dict) -> Sequence[Tuple[str, str]]:
     return [
         ('KurzbeschreibungObjekt', title),
         *fields,
-        ('Arbeitsnotiz', IMPORT_MARKER),
+        ('Arbeitsnotiz', IMPORT_MARKER + ';Lizenz: CC-BY-SA'),
         ('BearbeiterObjekt', CREATOR_NOTE)
     ]
 
