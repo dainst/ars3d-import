@@ -243,18 +243,22 @@ def arachne_literaturzitat_fields(row: dict, object_id) -> Sequence[Tuple[str, s
 def arachne_modell3d_fields_from_model_files(model_dir: Path, ars_uuid: str) -> Sequence[Tuple[str, str]]:
     uuid_dir = os.path.join(model_dir, ars_uuid)
     if os.path.isdir(uuid_dir):
+        nxz_file = os.path.join(uuid_dir, f'{ars_uuid}.nxz')
         obj_files = glob.glob(f'{uuid_dir}/*_reduziert.obj')
         mtl_files = glob.glob(f'{uuid_dir}/*_reduziert.mtl')
-        if obj_files and len(obj_files) == 1 and mtl_files and len(mtl_files) == 1:
-            return [
+        if os.path.isfile(nxz_file):
+            file_fields = [('Dateiname', os.path.basename(nxz_file)), ('Dateiformat', 'nxz')]
+        elif obj_files and len(obj_files) == 1 and mtl_files and len(mtl_files) == 1:
+            file_fields = [
                 ('Dateiname', os.path.basename(obj_files[0])),
                 ('Dateiformat', 'objmtl'),
                 ('DateinameMTL', os.path.basename(mtl_files[0])),
-                ('Pfad', os.path.join(FOLDER_REMOTE, ars_uuid)),
             ]
         else:
-            raise Exception(f'Missing obj or mtl file for id {ars_uuid}.')
-    return []
+            raise Exception(f'Missing nxz, obj or mtl file for id {ars_uuid}.')
+        return [*file_fields, ('Pfad', os.path.join(FOLDER_REMOTE, ars_uuid))]
+    else:
+        return []
 
 
 def query_portal_local_or_remote(ars_uuid: str, portal_cache: Optional[Path]) -> str:
