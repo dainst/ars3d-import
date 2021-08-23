@@ -17,12 +17,14 @@ from typing import Optional, Sequence, Tuple
 import requests
 from mysql.connector import connect, MySQLConnection
 
+
 DEFAULT_DB_CONF = os.path.join(os.path.dirname(__file__), '..', 'Config', 'db.my.cnf')
 
 IMPORT_MARKER = 'ARS3D-Import'
 CREATOR_NOTE = 'i3Mainz'
 COPYRIGHT = 'Copyright i3mainz; Alle Rechte vorbehalten'
 FOLDER_REMOTE = '/ars3d-test'
+LIT_ID_ATLANTE = '24860'  # SELECT PS_LiteraturID FROM literatur WHERE ZenonID = 001053710;
 
 PORTAL_URI_TEMPLATE = 'http://143.93.113.149/mntModels/rgzm/ars3do/%s/%s.json'
 PORTAL_LINK_TO_TEMPLATE = 'http://143.93.113.149/_portal/object.htm?id=ars3do:%s'
@@ -114,7 +116,7 @@ MAPPING_DATES = {
 MAPPING_LITERATURZITAT = {
     'litBookLabel': {
         'Hayes (1972)': [('FS_LiteraturID', '17657')],
-        'Atlante (1981)': [('FS_LiteraturID', '17631')]
+        'Atlante (1981)': [('FS_LiteraturID', LIT_ID_ATLANTE)]
     },
     'litClassificationNumber': [('Katnummer', REPLACE_FLAG)]
 }
