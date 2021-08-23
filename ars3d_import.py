@@ -22,7 +22,7 @@ DEFAULT_DB_CONF = os.path.join(os.path.dirname(__file__), '..', 'Config', 'db.my
 
 IMPORT_MARKER = 'ARS3D-Import'
 CREATOR_NOTE = 'i3Mainz'
-COPYRIGHT = 'Copyright i3mainz; Alle Rechte vorbehalten'
+COPYRIGHT = 'CC-BY-SA'
 FOLDER_REMOTE = '/ars3d-test'
 LIT_ID_ATLANTE = '24860'  # SELECT PS_LiteraturID FROM literatur WHERE ZenonID = 001053710;
 
