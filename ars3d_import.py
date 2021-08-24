@@ -47,8 +47,8 @@ MAPPING_OBJEKT = {
     'shapeLabel': {
         'bowl': [('GattungAllgemein', 'Kleinfund;Keramik;Gefäß')],
         'rectangular dish': [('GattungAllgemein', 'Kleinfund;Keramik;Gefäß')],
-        'mould': [('GattungAllgemein', 'Kleinfund;Keramik')],
-        'lamp': [('GattungAllgemein', 'Kleinfund;Keramik;Gerät')],
+        'mould': [('GattungAllgemein', 'Kleinfund')],
+        'lamp': [('GattungAllgemein', 'Kleinfund')],
         'dish': [('GattungAllgemein', 'Kleinfund;Keramik;Gefäß')],
         'plate': [('GattungAllgemein', 'Kleinfund;Keramik;Gefäß')],
         'stamp': [('GattungAllgemein', 'Kleinfund;Keramik;Gerät')],
