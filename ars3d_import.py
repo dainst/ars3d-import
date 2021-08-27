@@ -2,7 +2,7 @@
 
 # Import data from the ARS3D project into arachne (from csv dump and possibly additional API calls)
 # These imports are reversible with:
-#   DELETE FROM objekt WHERE Arbeitsnotiz LIKE 'ARS3D-Import%'; DELETE FROM modell3d WHERE Pfad LIKE '/ars3d-test%';
+#   DELETE FROM objekt WHERE Arbeitsnotiz LIKE 'ARS3D-Import%'; DELETE FROM modell3d WHERE Pfad LIKE '/ars3d%';
 
 import argparse
 import csv
@@ -23,12 +23,12 @@ DEFAULT_DB_CONF = os.path.join(os.path.dirname(__file__), '..', 'Config', 'db.my
 IMPORT_MARKER = 'ARS3D-Import'
 CREATOR_NOTE = 'i3Mainz'
 COPYRIGHT = 'CC-BY-SA'
-FOLDER_REMOTE = '/ars3d-test'
-LIT_ID_ATLANTE = '24860'  # SELECT PS_LiteraturID FROM literatur WHERE ZenonID = 001053710;
+FOLDER_REMOTE = '/ars3d'
+LIT_ID_ATLANTE = '24903'  # SELECT PS_LiteraturID FROM literatur WHERE ZenonID = 001053710;
 
 PORTAL_URI_TEMPLATE = 'http://143.93.113.149/mntModels/rgzm/ars3do/%s/%s.json'
 PORTAL_LINK_TO_TEMPLATE = 'http://143.93.113.149/_portal/object.htm?id=ars3do:%s'
-PORTAL_LINK_URI_QUELLE_ID = 45
+PORTAL_LINK_URI_QUELLE_ID = 45  # SELECT PS_URIQuelleID FROM URIQuelle WHERE Name LIKE 'Portal ARS3D';
 
 IGNORE_FLAG = 'IGNORE'
 REPLACE_FLAG = 'REPLACE'
